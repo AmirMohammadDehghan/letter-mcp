@@ -1,0 +1,6 @@
+{% load i18n admin_urls %}
+{% block object-tools-items %}
+    {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+    <a href="{% add_preserved_filters history_url %}" class="nova-btn secondary historylink">{% trans 'History' %}</a>
+    {% if has_absolute_url %}<a href="{{ absolute_url }}" class="nova-btn secondary viewsitelink">{% trans 'View on site' %}</a>{% endif %}
+{% endblock %}

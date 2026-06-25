@@ -1,0 +1,15 @@
+{% load i18n jazzmin %}
+{% trans "General" as general_tab %}
+{% get_sections adminform inline_admin_formsets as forms %}
+<ul class="nova-tabs nav-tabs" role="tablist" id="jazzy-tabs">
+    {% for fieldset in forms %}
+        <li><a class="{% if forloop.first %}active{% endif %}" role="tab" aria-controls="{{ fieldset.name|default:general_tab|unicode_slugify }}-tab" href="#{{ fieldset.name|default:general_tab|unicode_slugify }}-tab">{{ fieldset.name|default:general_tab }}</a></li>
+    {% endfor %}
+</ul>
+<div class="tab-content">
+    {% for fieldset in forms %}
+        <div id="{{ fieldset.name|default:general_tab|unicode_slugify }}-tab" class="tab-pane{% if forloop.first %} active show{% endif %}" role="tabpanel">
+            {% if fieldset.is_inline %}{% include fieldset.opts.template with inline_admin_formset=fieldset %}{% else %}{% include "admin/includes/fieldset.html" with card=True %}{% endif %}
+        </div>
+    {% endfor %}
+</div>

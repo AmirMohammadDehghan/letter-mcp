@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls jazzmin %}
+
+{% block breadcrumbs %}
+<nav class="nova-crumbs" aria-label="{% trans 'Breadcrumbs' %}">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    <a href="{% url opts|admin_urlname:'changelist' %}">{{ module_name }}</a>
+    <span>{% trans 'History' %}</span>
+</nav>
+{% endblock %}
+{% block content_title %}{% trans 'History' %}{% endblock %}
+{% block content %}
+<section class="nova-card nova-object-history">
+    <header class="nova-card-head">
+        <div>
+            <h2>{% trans 'History' %}</h2>
+            <p>{{ object|truncatewords:"18" }}</p>
+        </div>
+    </header>
+    <div class="nova-card-body">
+        {% if action_list %}
+            <ol class="nova-history-list large">
+                {% for action in action_list reversed %}
+                    {% action_message_to_list action as action_message_list %}
+                    {% for action_message in action_message_list %}
+                        <li class="nova-history-item is-change">
+                            <span class="nova-history-dot" aria-hidden="true"></span>
+                            <div class="nova-history-content">
+                                <div class="nova-history-top">
+                                    <strong><a href="{% jazzy_admin_url action.user request.current_app|default:'admin' %}" target="_blank">{{ action.user.get_username }}</a></strong>
+                                    <time>{{ action.action_time|date:"DATETIME_FORMAT" }}</time>
+                                </div>
+                                <span class="nova-history-object">{{ action_message.msg|style_bold_first_word }}</span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                {% endfor %}
+            </ol>
+        {% else %}
+            <div class="nova-empty">{% trans "This object doesn't have a change history. It probably wasn't added via this admin site." %}</div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

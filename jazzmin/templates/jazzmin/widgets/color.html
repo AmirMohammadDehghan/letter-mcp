@@ -1,0 +1,4 @@
+<div class="nova-color-widget">
+  <input type="color" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
+  <input type="text" class="nova-color-text" value="{{ widget.value|stringformat:'s' }}" data-nova-color-text aria-label="{{ widget.name }} color value">
+</div>

@@ -1,0 +1,116 @@
+
+/* Nova Persian/Jalali datepicker - isolated admin widget */
+.ui-datepicker {
+  z-index: 10050 !important;
+  width: 280px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-solid);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-family: var(--nova-font);
+  direction: rtl;
+}
+.ui-datepicker * { box-sizing: border-box; }
+.ui-datepicker .ui-datepicker-header {
+  position: relative;
+  min-height: 42px;
+  padding: 4px 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.ui-datepicker .ui-datepicker-title { display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 750; font-size: 13px; }
+.ui-datepicker select.ui-datepicker-month,
+.ui-datepicker select.ui-datepicker-year {
+  width: auto;
+  min-width: 86px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  background: var(--field);
+  color: var(--text);
+  font-size: 12px;
+}
+.ui-datepicker .ui-datepicker-prev,
+.ui-datepicker .ui-datepicker-next {
+  position: absolute;
+  top: 7px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+  color: var(--text-soft);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  text-indent: -999px;
+  overflow: hidden;
+}
+.ui-datepicker .ui-datepicker-prev { right: 2px; }
+.ui-datepicker .ui-datepicker-next { left: 2px; }
+.ui-datepicker .ui-datepicker-prev::before,
+.ui-datepicker .ui-datepicker-next::before { text-indent: 0; font-size: 16px; line-height: 1; }
+.ui-datepicker .ui-datepicker-prev::before { content: '›'; }
+.ui-datepicker .ui-datepicker-next::before { content: '‹'; }
+.ui-datepicker table { width: 100%; border-collapse: separate; border-spacing: 3px; margin: 0; }
+.ui-datepicker th { padding: 6px 2px; color: var(--muted); font-size: 11px; font-weight: 750; text-align: center; border: 0; }
+.ui-datepicker td { padding: 0; border: 0; text-align: center; }
+.ui-datepicker td span,
+.ui-datepicker td a {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 5px 4px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-xs);
+  color: var(--text-soft);
+  background: transparent;
+}
+.ui-datepicker td a:hover { background: var(--primary-soft); color: var(--text); }
+.ui-datepicker .ui-datepicker-today a { border: 1px solid var(--border-strong); color: var(--text); }
+.ui-datepicker .ui-state-active,
+.ui-datepicker .ui-widget-content .ui-state-active { background: var(--primary) !important; color: #fff !important; }
+.ui-datepicker .ui-state-disabled { opacity: .35; }
+.ui-datepicker .ui-datepicker-buttonpane { display: flex; gap: 8px; justify-content: space-between; border-top: 1px solid var(--border); margin-top: 8px; padding-top: 8px; }
+.ui-datepicker .ui-datepicker-buttonpane button { min-height: 32px; padding: 5px 10px; border-radius: var(--radius-xs); border: 1px solid var(--border); background: var(--surface-2); color: var(--text-soft); cursor: pointer; }
+.datetimeshortcuts { display: inline-flex; align-items: center; gap: 6px; margin-inline-start: 8px; color: var(--muted); font-size: 12px; vertical-align: middle; }
+.datetimeshortcuts a { color: var(--primary); font-weight: 650; }
+.calendarbox, .clockbox { z-index: 10060 !important; }
+
+/* v11 visible trigger and datepicker polish */
+.ui-datepicker-trigger {
+  min-height: 36px;
+  height: 36px;
+  margin-inline-start: 7px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-soft);
+  cursor: pointer;
+  font-family: var(--nova-font);
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.ui-datepicker-trigger:hover {
+  background: var(--field-hover);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.ui-datepicker.nova-datepicker-visible {
+  animation: novaDatepickerIn .14s ease-out;
+}
+@keyframes novaDatepickerIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ui-datepicker .ui-datepicker-title select {
+  appearance: auto;
+}

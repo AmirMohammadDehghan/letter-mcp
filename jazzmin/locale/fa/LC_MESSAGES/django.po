@@ -1,0 +1,117 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: jazzmin-nova-v16\n"
+"Language: fa\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "A permission-aware summary of applications, models and recent admin activity."
+msgstr "خلاصه‌ای بر اساس دسترسی شما از اپلیکیشن‌ها، مدل‌ها و فعالیت‌های اخیر مدیریت."
+
+msgid "Action mix"
+msgstr "ترکیب اکشن‌ها"
+
+msgid "Active sections visible to you"
+msgstr "بخش‌های فعالی که برای شما قابل مشاهده‌اند"
+
+msgid "Activity trend"
+msgstr "روند فعالیت"
+
+msgid "Additions"
+msgstr "افزودن‌ها"
+
+msgid "Admin actions during the last week"
+msgstr "اکشن‌های مدیریت در هفته اخیر"
+
+msgid "Admin log"
+msgstr "لاگ مدیریت"
+
+msgid "Admin performance overview"
+msgstr "نمای کلی عملکرد پنل مدیریت"
+
+msgid "Admin reporting"
+msgstr "گزارش‌های مدیریت"
+
+msgid "Applications"
+msgstr "اپلیکیشن‌ها"
+
+msgid "Applications by size"
+msgstr "اپلیکیشن‌ها بر اساس اندازه"
+
+msgid "Available admin models"
+msgstr "مدل‌های قابل مدیریت"
+
+msgid "Changes"
+msgstr "تغییرات"
+
+msgid "Changes by action type"
+msgstr "تغییرات بر اساس نوع اکشن"
+
+msgid "Create access"
+msgstr "دسترسی ساخت"
+
+msgid "Deletions"
+msgstr "حذف‌ها"
+
+msgid "Last 7 days"
+msgstr "۷ روز اخیر"
+
+msgid "Latest admin changes"
+msgstr "آخرین تغییرات مدیریت"
+
+msgid "Live admin data"
+msgstr "داده زنده پنل"
+
+msgid "Model distribution"
+msgstr "توزیع مدل‌ها"
+
+msgid "Models"
+msgstr "مدل‌ها"
+
+msgid "Models with create permission"
+msgstr "مدل‌هایی که مجوز ساخت دارند"
+
+msgid "No reportable applications found."
+msgstr "اپلیکیشن قابل گزارش پیدا نشد."
+
+msgid "Permission aware"
+msgstr "بر اساس سطح دسترسی"
+
+msgid "Recent actions"
+msgstr "فعالیت‌های اخیر"
+
+msgid "Recent activity"
+msgstr "فعالیت اخیر"
+
+msgid "Report properties"
+msgstr "ویژگی‌های گزارش"
+
+msgid "Reporting dashboard"
+msgstr "داشبورد گزارش‌دهی"
+
+msgid "Top sections"
+msgstr "بخش‌های برتر"
+
+msgid "Weekly activity chart"
+msgstr "نمودار فعالیت هفتگی"
+
+msgid "Weekly admin activity"
+msgstr "فعالیت هفتگی مدیریت"
+
+msgid "actions"
+msgstr "اکشن"
+
+msgid "create coverage"
+msgstr "پوشش ساخت"
+
+msgid "models"
+msgstr "مدل"
+
+msgid "models per app"
+msgstr "مدل در هر اپ"
+
+msgid "timeline events"
+msgstr "رویداد در نمودار زمانی"
+
+msgid "view coverage"
+msgstr "پوشش مشاهده"

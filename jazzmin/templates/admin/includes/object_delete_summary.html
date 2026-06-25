@@ -1,0 +1,14 @@
+{% load i18n %}
+<section class="nova-delete-summary">
+    <h3>{% trans "Summary" %}</h3>
+    <table class="nova-table compact">
+        <tbody>
+        {% for model_name, object_count in model_count %}
+            <tr>
+                <td>{{ model_name|capfirst }}</td>
+                <td>{{ object_count }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>

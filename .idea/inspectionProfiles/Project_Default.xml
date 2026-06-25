@@ -1,0 +1,24 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="INFORMATION" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="asgiref" />
+          <option value="Django" />
+          <option value="django-admin-interface" />
+          <option value="django-ckeditor-5" />
+          <option value="django-colorfield" />
+          <option value="pillow" />
+          <option value="python-decouple" />
+          <option value="python-slugify" />
+          <option value="sqlparse" />
+          <option value="text-unidecode" />
+          <option value="tzdata" />
+          <option value="psycopg" />
+          <option value="psycopg-binary" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

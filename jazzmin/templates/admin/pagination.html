@@ -1,0 +1,9 @@
+{% load admin_list jazzmin i18n %}
+<div class="nova-pagination-info">
+    <span>{{ cl.result_count }} {% if cl.result_count == 1 %}{{ cl.opts.verbose_name }}{% else %}{{ cl.opts.verbose_name_plural }}{% endif %}</span>
+    {% if show_all_url %}<a href="{{ show_all_url }}" class="nova-btn secondary sm">{% trans 'Show all' %}</a>{% endif %}
+    {% if cl.formset and cl.result_count %}<input type="submit" name="_save" class="nova-btn primary sm" value="{% trans 'Save' %}">{% endif %}
+</div>
+<ul class="pagination nova-pagination">
+    {% if pagination_required %}{% for i in page_range %}{% jazzmin_paginator_number cl i %}{% endfor %}{% endif %}
+</ul>

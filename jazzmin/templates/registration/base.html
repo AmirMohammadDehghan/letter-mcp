@@ -1,0 +1,43 @@
+{% load i18n static jazzmin admin_urls %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+{% get_jazzmin_settings request as jazzmin_settings %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'fa-ir' }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>{% block title %}{{ title }} | {{ jazzmin_settings.site_title }}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'jazzmin/css/main.css' %}">
+    {% nova_theme_css %}
+    {% nova_theme_config %}
+    {% if jazzmin_settings.custom_css %}<link rel="stylesheet" href="{% static jazzmin_settings.custom_css %}">{% endif %}
+    <link rel="shortcut icon" href="{% static jazzmin_settings.site_icon %}" type="image/png">
+    <link rel="icon" href="{% static jazzmin_settings.site_icon %}" sizes="32x32" type="image/png">
+    {% block extrastyle %}{% endblock %}
+    {% block extrahead %}{% endblock %}
+</head>
+<body class="nova-admin nova-login-page" data-nova-lang="{{ LANGUAGE_CODE|default:'fa-ir' }}" data-nova-dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
+    <div class="nova-bg" aria-hidden="true"><span></span><span></span><span></span></div>
+    <main class="nova-login-shell">
+        <section class="nova-login-card">
+            <div class="nova-login-brand">
+                {% if jazzmin_settings.nova_brand_logo %}
+                    <img class="nova-brand-img" src="{% static jazzmin_settings.nova_brand_logo %}" alt="{{ jazzmin_settings.site_brand|default:jazzmin_settings.site_header }}">
+                {% else %}
+                    <span class="nova-brand-mark">{{ jazzmin_settings.site_brand|default:jazzmin_settings.site_header|slice:':1' }}</span>
+                {% endif %}
+                <div>
+                    <strong>{{ jazzmin_settings.site_brand|default:jazzmin_settings.site_header }}</strong>
+                    <small>{{ jazzmin_settings.site_title }}</small>
+                </div>
+            </div>
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+    <script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+    <script src="{% static 'jazzmin/js/main.js' %}"></script>
+    {% if jazzmin_settings.custom_js %}<script src="{% static jazzmin_settings.custom_js %}"></script>{% endif %}
+</body>
+</html>

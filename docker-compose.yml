@@ -1,0 +1,65 @@
+services:
+  web:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.14}
+    container_name: lettermcp-web
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - staticfiles:/app/staticfiles
+      - mediafiles:/app/media
+    ports:
+      - "127.0.0.1:8008:8000"
+    networks:
+      - lettermcp-net
+
+  db:
+    image: postgres:17-alpine
+    container_name: lettermcp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Tehran
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - lettermcp-net
+
+  backup:
+    image: alpine:3.20
+    container_name: lettermcp-backup
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backups:/backups
+      - ./scripts:/scripts:ro
+    command: sh -c "apk add --no-cache postgresql17-client aws-cli tzdata dcron && chmod +x /scripts/backup-db-to-rustfs.sh && echo '${BACKUP_CRON:-0 3 * * *} /scripts/backup-db-to-rustfs.sh >> /var/log/backup.log 2>&1' > /etc/crontabs/root && crond -f -l 8"
+    networks:
+      - lettermcp-net
+
+volumes:
+  postgres_data:
+  staticfiles:
+  mediafiles:
+
+networks:
+  lettermcp-net:
+    driver: bridge

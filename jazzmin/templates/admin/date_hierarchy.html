@@ -1,0 +1,9 @@
+{% load i18n %}
+{% if show %}
+    <nav class="nova-date-hierarchy" aria-label="{% trans 'Date hierarchy' %}">
+        {% if back %}<a class="nova-btn secondary sm" href="{{ back.link }}">&lsaquo; {{ back.title }}</a>{% endif %}
+        {% for choice in choices %}
+            {% if choice.link %}<a href="{{ choice.link }}" class="nova-btn secondary sm">{{ choice.title }}</a>{% else %}<span class="nova-btn primary sm is-current">{{ choice.title }}</span>{% endif %}
+        {% endfor %}
+    </nav>
+{% endif %}

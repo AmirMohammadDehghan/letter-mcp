@@ -1,0 +1,13 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content_title %}{{ app_label|capfirst }}{% endblock %}
+{% block bodyclass %}{{ block.super }} app-{{ app_label }}{% endblock %}
+{% if not is_popup %}
+{% block breadcrumbs %}
+<nav class="nova-crumbs" aria-label="{% trans 'Breadcrumbs' %}">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    <span>{% for app in app_list %}{{ app.name }}{% endfor %}</span>
+</nav>
+{% endblock %}
+{% endif %}

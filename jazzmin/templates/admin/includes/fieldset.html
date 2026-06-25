@@ -1,0 +1,41 @@
+{% load jazzmin %}
+{% if card %}
+<section class="nova-card nova-fieldset {{ fieldset.classes|cut:'collapse' }}">
+    {% if card_header and fieldset.name %}
+        <header class="nova-card-head">
+            <h2>{{ fieldset.name }}</h2>
+            {% if fieldset.description %}<p>{{ fieldset.description|safe }}</p>{% endif %}
+        </header>
+    {% elif fieldset.description %}
+        <header class="nova-card-head"><p>{{ fieldset.description|safe }}</p></header>
+    {% endif %}
+    <div class="nova-card-body">
+{% endif %}
+
+{% for line in fieldset %}
+    <div class="nova-form-row{% if line.errors %} has-errors{% endif %}{% if not line.has_visible_field %} hidden{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
+        {% for field in line %}
+            <div class="nova-form-field{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} has-errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}">
+                {% if not field.field.is_hidden %}
+                    <label class="nova-field-label" for="id_{{ field.field.name }}">
+                        {{ field.field.label|capfirst }}{% if field.field.field.required %}<span class="required">*</span>{% endif %}
+                    </label>
+                {% endif %}
+                <div class="nova-field-control">
+                    {% if field.is_readonly %}
+                        <div class="readonly">{{ field.contents }}</div>
+                    {% else %}
+                        {{ field.field }}
+                    {% endif %}
+                    {% if field.field.help_text %}<div class="help-block">{{ field.field.help_text|safe }}</div>{% endif %}
+                    {% if line.fields|length == 1 %}<div class="nova-errors">{{ line.errors }}</div>{% else %}<div class="nova-errors">{{ field.errors }}</div>{% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endfor %}
+
+{% if card %}
+    </div>
+</section>
+{% endif %}

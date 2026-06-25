@@ -1,0 +1,21 @@
+.nova-admin-palette { display: inline-flex; gap: 4px; align-items: center; vertical-align: middle; }
+.nova-admin-palette i { width: 18px; height: 18px; border-radius: 999px; border: 1px solid rgba(148,163,184,.45); box-shadow: 0 2px 8px rgba(0,0,0,.14); }
+.nova-admin-live-preview { direction: inherit; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; max-width: 520px; min-height: 150px; padding: 12px; border-radius: var(--preview-radius); background: #0b1220; border: 1px solid rgba(148,163,184,.25); box-shadow: 0 14px 38px rgba(15,23,42,.18); }
+.nova-admin-live-preview aside { border-radius: calc(var(--preview-radius) - 2px); background: var(--preview-surface); padding: 12px; color: #e5e7eb; display: grid; align-content: start; gap: 10px; }
+.nova-admin-live-preview aside b { font-size: 12px; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nova-admin-live-preview aside span { height: 22px; border-radius: 7px; background: rgba(255,255,255,.08); }
+.nova-admin-live-preview aside span:nth-child(2) { background: color-mix(in srgb, var(--preview-primary) 34%, transparent); }
+.nova-admin-live-preview main { display: grid; gap: 10px; }
+.nova-admin-live-preview header { height: 42px; border-radius: calc(var(--preview-radius) - 2px); background: rgba(255,255,255,.08); border: 1px solid rgba(148,163,184,.18); }
+.nova-admin-live-preview section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.nova-admin-live-preview section i { min-height: 74px; border-radius: calc(var(--preview-radius) - 2px); background: rgba(255,255,255,.06); border: 1px solid rgba(148,163,184,.18); }
+.form-row .nova-color-wrap { display: inline-flex; align-items: center; gap: 8px; }
+input.nova-color-input[type="color"] { inline-size: 48px !important; min-height: 36px !important; padding: 3px !important; border-radius: 9px !important; cursor: pointer; }
+.nova-color-hex { direction: ltr; width: 90px; min-height: 36px; padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(148,163,184,.35); background: rgba(148,163,184,.08); color: inherit; font: 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+.field-custom_css textarea { direction: ltr; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; min-height: 160px; }
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+  .nova-admin-live-preview aside span:nth-child(2) { background: var(--preview-primary); opacity: .35; }
+}
+
+html[dir="ltr"] .nova-admin-live-preview { grid-template-columns: 120px minmax(0, 1fr); }
+html[dir="rtl"] .nova-admin-live-preview { grid-template-columns: 120px minmax(0, 1fr); }

@@ -1,0 +1,9 @@
+{% extends "registration/base.html" %}
+{% load i18n %}
+{% block title %}{% trans 'Log in again' %}{% endblock %}
+{% block content %}
+    <div class="nova-login-message">
+        <p>{% trans "Thanks for spending some quality time with the Web site today." %}</p>
+    </div>
+    <a class="nova-btn primary block" href="{% url 'admin:index' %}">{% trans 'Log in again' %}</a>
+{% endblock %}

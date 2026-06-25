@@ -1,0 +1,18 @@
+{% load i18n admin_urls jazzmin %}
+{% block submit-row %}
+<section class="nova-card nova-actions-card" id="jazzy-actions">
+    <header class="nova-card-head"><h2>{% trans 'Actions' %}</h2></header>
+    <div class="nova-action-stack">
+        {% if show_save %}<input type="submit" value="{% trans 'Save' %}" class="nova-btn primary" name="_save">{% endif %}
+        {% if show_save_and_continue %}<input type="submit" class="nova-btn secondary" value="{% if can_change %}{% trans 'Save and continue editing' %}{% else %}{% trans 'Save and view' %}{% endif %}" name="_continue">{% endif %}
+        {% if show_save_and_add_another %}<input type="submit" class="nova-btn secondary" value="{% trans 'Save and add another' %}" name="_addanother">{% endif %}
+        {% if show_save_as_new %}<input type="submit" class="nova-btn secondary" value="{% trans 'Save as new' %}" name="_saveasnew">{% endif %}
+        {% if show_delete_link and original %}
+            {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
+            <a href="{% add_preserved_filters delete_url %}" class="nova-btn danger">{% trans 'Delete' %}</a>
+        {% endif %}
+        {% if show_close %}<a href="{% url opts|admin_urlname:'changelist' %}" class="nova-btn secondary">{% trans 'Close' %}</a>{% endif %}
+        {% block extra-actions %}{% endblock %}
+    </div>
+</section>
+{% endblock %}

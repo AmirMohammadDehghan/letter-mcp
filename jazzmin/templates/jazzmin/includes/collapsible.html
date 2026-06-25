@@ -1,0 +1,13 @@
+{% load i18n jazzmin %}
+{% trans "General" as general_tab %}
+{% get_sections adminform inline_admin_formsets as forms %}
+<div id="jazzy-collapsible" class="nova-collapsible">
+    {% for fieldset in forms %}
+        <details class="nova-card" {% if forloop.first %}open{% endif %}>
+            <summary class="nova-card-head"><h2>{{ fieldset.name|default:general_tab }}</h2></summary>
+            <div class="nova-card-body">
+                {% if fieldset.is_inline %}{% include fieldset.opts.template with inline_admin_formset=fieldset %}{% else %}{% include "admin/includes/fieldset.html" with card=True %}{% endif %}
+            </div>
+        </details>
+    {% endfor %}
+</div>

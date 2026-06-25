@@ -1,0 +1,23 @@
+{% load i18n static jazzmin %}
+{% if result_hidden_fields %}<div class="hiddenfields">{% for item in result_hidden_fields %}{{ item }}{% endfor %}</div>{% endif %}
+{% if results %}
+<div class="nova-table-wrap">
+    <table id="result_list" class="nova-table">
+        <thead>
+            <tr>
+                {% for header in result_headers %}
+                    <th class="{% header_class header forloop %}" tabindex="0" rowspan="1" colspan="1">
+                        <div class="text">
+                            {% if header.sortable %}<a href="{{ header.url_primary }}">{{ header.text|capfirst }}</a>{% else %}<span>{{ header.text|capfirst }}</span>{% endif %}
+                            {% if header.sorted %}<a href="{{ header.url_remove }}" class="nova-sort-remove">×</a><span class="nova-sort-indicator">{% if header.ascending %}↑{% else %}↓{% endif %}</span>{% endif %}
+                        </div>
+                    </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}<tr class="{% cycle 'even' 'odd' %}">{% for item in result %}{{ item }}{% endfor %}</tr>{% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}

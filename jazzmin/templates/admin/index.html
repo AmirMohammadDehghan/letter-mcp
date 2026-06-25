@@ -1,0 +1,194 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static jazzmin log %}
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+{% block content_title %}{% trans 'Dashboard' %}{% endblock %}
+{% block breadcrumbs %}<nav class="nova-crumbs"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a><span>{% trans 'Dashboard' %}</span></nav>{% endblock %}
+
+{% block content %}
+{% get_side_menu using="app_list" as dashboard_list %}
+{% dashboard_report_data dashboard_list as dashboard_report %}
+{% with dashboard_stats=dashboard_report.summary %}
+<div class="nova-dashboard">
+    {% if jazzmin_settings.nova_show_dashboard_reports %}
+<section class="nova-report-panel nova-report-panel-v16" aria-label="{% trans 'Admin reporting' %}">
+    <div class="nova-report-intro">
+        <div>
+            <span class="nova-kicker">{% trans 'Reporting dashboard' %}</span>
+            <h2>{% trans 'Admin performance overview' %}</h2>
+            <p>{% trans 'A permission-aware summary of applications, models and recent admin activity.' %}</p>
+        </div>
+        <div class="nova-report-badges" aria-label="{% trans 'Report properties' %}">
+            <span>{% trans 'Live admin data' %}</span>
+            <span>{% trans 'Last 7 days' %}</span>
+            <span>{% trans 'Permission aware' %}</span>
+        </div>
+    </div>
+
+    <div class="nova-report-kpis">
+        <article class="nova-report-card nova-kpi-card primary">
+            <span class="nova-report-label">{% trans 'Applications' %}</span>
+            <strong>{{ dashboard_stats.apps }}</strong>
+            <small>{% trans 'Active sections visible to you' %}</small>
+            <span class="nova-kpi-chip">{{ dashboard_stats.model_density }} {% trans 'models per app' %}</span>
+        </article>
+        <article class="nova-report-card nova-kpi-card">
+            <span class="nova-report-label">{% trans 'Models' %}</span>
+            <strong>{{ dashboard_stats.models }}</strong>
+            <small>{% trans 'Available admin models' %}</small>
+            <span class="nova-kpi-chip muted">{{ dashboard_stats.coverage }}٪ {% trans 'view coverage' %}</span>
+        </article>
+        <article class="nova-report-card nova-kpi-card success">
+            <span class="nova-report-label">{% trans 'Create access' %}</span>
+            <strong>{{ dashboard_stats.addable }}</strong>
+            <small>{% trans 'Models with create permission' %}</small>
+            <span class="nova-kpi-chip success">{{ dashboard_stats.add_coverage }}٪ {% trans 'create coverage' %}</span>
+        </article>
+        <article class="nova-report-card nova-kpi-card info">
+            <span class="nova-report-label">{% trans 'Recent activity' %}</span>
+            <strong>{{ dashboard_report.actions.total }}</strong>
+            <small>{% trans 'Admin actions during the last week' %}</small>
+            <span class="nova-kpi-chip info">{{ dashboard_report.trend.total }} {% trans 'timeline events' %}</span>
+        </article>
+    </div>
+
+    <div class="nova-report-grid">
+        <article class="nova-report-card nova-chart-card nova-trend-card">
+            <header class="nova-chart-head">
+                <div>
+                    <span class="nova-report-label">{% trans 'Activity trend' %}</span>
+                    <h3>{% trans 'Weekly admin activity' %}</h3>
+                </div>
+                <span class="nova-chart-pill">{% trans 'Last 7 days' %}</span>
+            </header>
+            <svg class="nova-line-chart" viewBox="0 0 360 128" preserveAspectRatio="none" role="img" aria-label="{% trans 'Weekly activity chart' %}">
+                <defs>
+                    <linearGradient id="novaTrendArea" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="currentColor" stop-opacity=".20" />
+                        <stop offset="1" stop-color="currentColor" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+                <g class="nova-chart-grid" aria-hidden="true">
+                    <line x1="18" y1="28" x2="342" y2="28"></line>
+                    <line x1="18" y1="66" x2="342" y2="66"></line>
+                    <line x1="18" y1="104" x2="342" y2="104"></line>
+                </g>
+                {% if dashboard_report.trend.area_path %}<path class="nova-line-area" d="{{ dashboard_report.trend.area_path }}"></path>{% endif %}
+                {% if dashboard_report.trend.line_path %}<path class="nova-line-path" d="{{ dashboard_report.trend.line_path }}"></path>{% endif %}
+                {% for point in dashboard_report.trend.points %}
+                    <circle class="nova-line-dot" cx="{{ point.x }}" cy="{{ point.y }}" r="3.7"><title>{{ point.date|date:'SHORT_DATE_FORMAT' }} — {{ point.count }} {% trans 'actions' %}</title></circle>
+                {% endfor %}
+            </svg>
+            <div class="nova-chart-axis">
+                {% for point in dashboard_report.trend.points %}<span>{{ point.date|date:'m/d' }}</span>{% endfor %}
+            </div>
+        </article>
+
+        <article class="nova-report-card nova-chart-card nova-app-chart-card">
+            <header class="nova-chart-head">
+                <div>
+                    <span class="nova-report-label">{% trans 'Applications by size' %}</span>
+                    <h3>{% trans 'Model distribution' %}</h3>
+                </div>
+                <span class="nova-chart-pill">{% trans 'Top sections' %}</span>
+            </header>
+            <div class="nova-app-bars" role="list">
+                {% for item in dashboard_report.apps %}
+                    <div class="nova-app-bar-row" role="listitem">
+                        <div class="nova-app-bar-meta"><strong>{{ item.name }}</strong><span>{{ item.models }} {% trans 'models' %}</span></div>
+                        <div class="nova-app-bar-track" aria-hidden="true"><span style="width: {{ item.model_percent }}%"></span></div>
+                    </div>
+                {% empty %}
+                    <div class="nova-empty compact">{% trans 'No reportable applications found.' %}</div>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="nova-report-card nova-chart-card nova-mix-card">
+            <header class="nova-chart-head">
+                <div>
+                    <span class="nova-report-label">{% trans 'Action mix' %}</span>
+                    <h3>{% trans 'Changes by action type' %}</h3>
+                </div>
+                <span class="nova-chart-pill">{% trans 'Admin log' %}</span>
+            </header>
+            <div class="nova-donut-wrap">
+                <div class="nova-donut" style="background: {{ dashboard_report.actions.donut_gradient }}"><span>{{ dashboard_report.actions.total }}</span></div>
+                <div class="nova-donut-legend">
+                    <span><i class="success"></i>{% trans 'Additions' %}<b>{{ dashboard_report.actions.additions }}</b></span>
+                    <span><i class="primary"></i>{% trans 'Changes' %}<b>{{ dashboard_report.actions.changes }}</b></span>
+                    <span><i class="danger"></i>{% trans 'Deletions' %}<b>{{ dashboard_report.actions.deletions }}</b></span>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+{% endif %}
+
+    <section class="nova-dashboard-main" aria-label="{% trans 'Applications' %}">
+        {% for app in dashboard_list %}
+            <article class="nova-card nova-app-card">
+                <header class="nova-card-head nova-app-card-head">
+                    <div>
+                        <h2>{{ app.name }}</h2>
+                        <p>{{ app.models|length }} {% trans 'models' %}</p>
+                    </div>
+                </header>
+                <div class="nova-model-list">
+                    {% for model in app.models %}
+                        <div class="nova-model-item">
+                            <div class="nova-model-name">
+                                {% if model.url %}<a href="{{ model.url }}">{{ model.name }}</a>{% else %}<span>{{ model.name }}</span>{% endif %}
+                            </div>
+                            <div class="nova-model-actions">
+                                {% if model.add_url %}<a href="{{ model.add_url }}" class="nova-btn success sm">{% trans 'Add' %}</a>{% endif %}
+                                {% if model.url %}
+                                    {% if model.view_only %}<a href="{{ model.url }}" class="nova-btn secondary sm">{% trans 'View' %}</a>{% else %}<a href="{{ model.url }}" class="nova-btn secondary sm">{% if model.custom %}{% trans 'Go' %}{% else %}{% trans 'Change' %}{% endif %}</a>{% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </article>
+        {% empty %}
+            <div class="nova-empty">{% trans 'You don’t have permission to view or edit anything.' %}</div>
+        {% endfor %}
+    </section>
+    {% if jazzmin_settings.nova_show_recent_actions %}<aside class="nova-dashboard-side">
+        <section class="nova-card nova-history-card" id="recent-actions-module">
+            <header class="nova-card-head">
+                <div>
+                    <h2>{% trans 'Recent actions' %}</h2>
+                    <p>{% trans 'Latest admin changes' %}</p>
+                </div>
+            </header>
+            {% get_admin_log 6 as admin_log for_user user %}
+            {% if not admin_log %}
+                <div class="nova-empty">{% trans 'None available' %}</div>
+            {% else %}
+                <ol class="nova-history-list">
+                    {% for entry in admin_log %}
+                        <li class="nova-history-item {% if entry.is_addition %}is-add{% elif entry.is_change %}is-change{% elif entry.is_deletion %}is-delete{% endif %}">
+                            <span class="nova-history-dot" aria-hidden="true"></span>
+                            <div class="nova-history-content">
+                                <div class="nova-history-top">
+                                    <strong>{% if entry.is_addition %}{% trans 'Added' %}{% elif entry.is_change %}{% trans 'Changed' %}{% elif entry.is_deletion %}{% trans 'Deleted' %}{% endif %}</strong>
+                                    <time>{% blocktrans with timesince=entry.action_time|timesince %}{{ timesince }} ago{% endblocktrans %}</time>
+                                </div>
+                                <span class="nova-history-object">{% if entry.is_deletion or not entry.get_admin_url %}{{ entry.object_repr }}{% else %}<a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>{% endif %}</span>
+                                {% if entry.content_type %}<small>{{ entry.content_type.name|capfirst }}</small>{% else %}<small>{% trans 'Unknown content' %}</small>{% endif %}
+                                {% if not entry.is_deletion and entry.is_change %}
+                                    <ul class="nova-history-changes">
+                                        {% action_message_to_list entry as action_message_list %}
+                                        {% for action_message in action_message_list %}<li>{{ action_message.msg|style_bold_first_word }}</li>{% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% endif %}
+        </section>
+    </aside>{% endif %}
+</div>
+{% endwith %}
+{% endblock %}
