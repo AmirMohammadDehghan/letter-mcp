@@ -5,6 +5,7 @@ Production intent:
 - The admin panel is used to manage DOCX templates.
 - Authenticated API users, including n8n service accounts, generate letters.
 - Media files can be stored locally in development or in RustFS/S3 in production.
+- Static files can also be stored in a separate RustFS/S3 bucket.
 """
 
 from datetime import timedelta
@@ -35,15 +36,21 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me")
 DEBUG = env_bool("DEBUG", False)
 DEPLOY = env_bool("DEPLOY", False)
 
-ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost")
-CSRF_TRUSTED_ORIGINS = env_list(
-    "CSRF_TRUSTED_ORIGINS",
-    "https://lettermpc.24u.ir,https://www.lettermcp.24u.ir",
+ALLOWED_HOSTS = env_list(
+    "ALLOWED_HOSTS",
+    "lettermcp.24u.ir,93.118.112.69,127.0.0.1,localhost",
 )
 
-# Reverse proxy / CDN support. Arvan/Nginx should pass X-Forwarded-Proto=https.
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    "https://lettermcp.24u.ir,http://93.118.112.69:8002",
+)
+
+# Reverse proxy / CDN support.
+# Arvan CDN should pass X-Forwarded-Proto=https.
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 
 INSTALLED_APPS = [
     "jazzmin",
@@ -59,9 +66,14 @@ INSTALLED_APPS = [
     "api",
 ]
 
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+
+    # Keep this enabled for local/static fallback.
+    # If USE_S3_STATIC=1, static files are served from S3/RustFS instead.
     "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -70,7 +82,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
 ROOT_URLCONF = "core.urls"
+
 
 TEMPLATES = [
     {
@@ -87,7 +101,9 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = "core.wsgi.application"
+
 
 if DEPLOY:
     DATABASES = {
@@ -108,6 +124,7 @@ else:
         }
     }
 
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -115,19 +132,29 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+
 LANGUAGE_CODE = "fa-ir"
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+
+# ---------------------------------------------------------------------
+# Static and media defaults
+# ---------------------------------------------------------------------
+
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
-# API defaults: every endpoint is protected unless a view explicitly opts out.
+
+# ---------------------------------------------------------------------
+# DRF / JWT
+# ---------------------------------------------------------------------
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "api.authentication.ServiceAPIKeyAuthentication",
@@ -146,6 +173,7 @@ REST_FRAMEWORK = {
     ),
 }
 
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
         minutes=int(os.getenv("JWT_ACCESS_TOKEN_MINUTES", "30"))
@@ -156,60 +184,108 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+
+# ---------------------------------------------------------------------
+# S3 / RustFS storage
+# ---------------------------------------------------------------------
+
 USE_S3_MEDIA = env_bool("USE_S3_MEDIA", False)
+USE_S3_STATIC = env_bool("USE_S3_STATIC", False)
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
+AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", "https://storage.24u.ir").rstrip("/")
+AWS_S3_VERIFY = env_bool("AWS_S3_VERIFY", True)
+
+AWS_S3_ADDRESSING_STYLE = os.getenv("AWS_S3_ADDRESSING_STYLE", "path")
+AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION", "s3v4")
+
+AWS_QUERYSTRING_EXPIRE = int(os.getenv("AWS_QUERYSTRING_EXPIRE", "86400"))
+
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "my-docgen-bucket")
+AWS_STATIC_BUCKET_NAME = os.getenv("AWS_STATIC_BUCKET_NAME", "static-docgen-bucket")
+
+S3_MEDIA_LOCATION = os.getenv("S3_MEDIA_LOCATION", "media").strip()
+S3_STATIC_LOCATION = os.getenv("S3_STATIC_LOCATION", "static").strip()
+
+MEDIA_QUERYSTRING_AUTH = env_bool("MEDIA_QUERYSTRING_AUTH", True)
+STATIC_QUERYSTRING_AUTH = env_bool("STATIC_QUERYSTRING_AUTH", False)
+
+MEDIA_FILE_OVERWRITE = env_bool("MEDIA_FILE_OVERWRITE", False)
+STATIC_FILE_OVERWRITE = env_bool("STATIC_FILE_OVERWRITE", True)
+
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 
 if USE_S3_MEDIA:
-    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "django-media")
-    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
-    AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", "https://storage.24u.ir")
-
-    AWS_DEFAULT_ACL = None
-    AWS_QUERYSTRING_AUTH = env_bool("AWS_QUERYSTRING_AUTH", True)
-    AWS_QUERYSTRING_EXPIRE = int(os.getenv("AWS_QUERYSTRING_EXPIRE", "86400"))
-    AWS_S3_ADDRESSING_STYLE = "path"
-    AWS_S3_SIGNATURE_VERSION = "s3v4"
-    AWS_S3_VERIFY = env_bool("AWS_S3_VERIFY", True)
-    AWS_S3_FILE_OVERWRITE = False
-    S3_MEDIA_LOCATION = os.getenv("S3_MEDIA_LOCATION", "media")
-
-    # Django >= 4.2 storage configuration. Works with RustFS because it speaks S3 API.
-    STORAGES = {
-        "default": {
-            "BACKEND": "storages.backends.s3.S3Storage",
-            "OPTIONS": {
-                "bucket_name": AWS_STORAGE_BUCKET_NAME,
-                "access_key": AWS_ACCESS_KEY_ID,
-                "secret_key": AWS_SECRET_ACCESS_KEY,
-                "endpoint_url": AWS_S3_ENDPOINT_URL,
-                "region_name": AWS_S3_REGION_NAME,
-                "addressing_style": AWS_S3_ADDRESSING_STYLE,
-                "signature_version": AWS_S3_SIGNATURE_VERSION,
-                "default_acl": AWS_DEFAULT_ACL,
-                "querystring_auth": AWS_QUERYSTRING_AUTH,
-                "querystring_expire": AWS_QUERYSTRING_EXPIRE,
-                "file_overwrite": AWS_S3_FILE_OVERWRITE,
-                "verify": AWS_S3_VERIFY,
-                "location": S3_MEDIA_LOCATION,
-            },
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-        },
-    }
-else:
-    STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "access_key": AWS_ACCESS_KEY_ID,
+            "secret_key": AWS_SECRET_ACCESS_KEY,
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+            "region_name": AWS_S3_REGION_NAME,
+            "addressing_style": AWS_S3_ADDRESSING_STYLE,
+            "signature_version": AWS_S3_SIGNATURE_VERSION,
+            "default_acl": None,
+            "querystring_auth": MEDIA_QUERYSTRING_AUTH,
+            "querystring_expire": AWS_QUERYSTRING_EXPIRE,
+            "file_overwrite": MEDIA_FILE_OVERWRITE,
+            "verify": AWS_S3_VERIFY,
+            "location": S3_MEDIA_LOCATION,
         },
     }
 
-# Safer defaults in production. Keep them configurable for local/staging deployments.
+    MEDIA_URL = (
+        f"{AWS_S3_ENDPOINT_URL}/"
+        f"{AWS_STORAGE_BUCKET_NAME}/"
+        f"{S3_MEDIA_LOCATION}/"
+    )
+
+
+if USE_S3_STATIC:
+    STORAGES["staticfiles"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": AWS_STATIC_BUCKET_NAME,
+            "access_key": AWS_ACCESS_KEY_ID,
+            "secret_key": AWS_SECRET_ACCESS_KEY,
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+            "region_name": AWS_S3_REGION_NAME,
+            "addressing_style": AWS_S3_ADDRESSING_STYLE,
+            "signature_version": AWS_S3_SIGNATURE_VERSION,
+            "default_acl": "public-read",
+            "querystring_auth": STATIC_QUERYSTRING_AUTH,
+            "file_overwrite": STATIC_FILE_OVERWRITE,
+            "verify": AWS_S3_VERIFY,
+            "location": S3_STATIC_LOCATION,
+        },
+    }
+
+    STATIC_URL = (
+        f"{AWS_S3_ENDPOINT_URL}/"
+        f"{AWS_STATIC_BUCKET_NAME}/"
+        f"{S3_STATIC_LOCATION}/"
+    )
+
+
+# ---------------------------------------------------------------------
+# Security
+# ---------------------------------------------------------------------
+
 SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", DEPLOY and not DEBUG)
 CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", DEPLOY and not DEBUG)
 SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
+
 X_FRAME_OPTIONS = "DENY"
