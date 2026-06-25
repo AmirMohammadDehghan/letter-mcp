@@ -1,6 +1,6 @@
 """Admin configuration for templates and generated document audit trail."""
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.html import format_html
 
 from .models import DocumentTemplate, GeneratedDocument, ServiceAPIKey
@@ -71,17 +71,45 @@ class ServiceAPIKeyAdmin(admin.ModelAdmin):
         return qs.filter(owner=request.user)
 
     def save_model(self, request, obj, form, change):
-        # Raw keys are intentionally created by the management command so they
-        # can be displayed once and never stored in the database.
-        if not change and not obj.created_by_id:
+        """Generate and show the raw key exactly once when created from Admin.
+
+        The raw value is never saved in the database. Only its hash and a short
+        prefix are stored. If the admin misses copying the key from the success
+        message, the safe recovery path is to revoke this record and create a
+        new key.
+        """
+        if not obj.created_by_id:
             obj.created_by = request.user
+
         if not request.user.is_superuser:
             obj.owner = request.user
+        elif not obj.owner_id:
+            obj.owner = request.user
+
+        if not change:
+            raw_key = ServiceAPIKey.generate_plain_key()
+            obj.key_prefix = raw_key[:12]
+            obj.key_hash = ServiceAPIKey.hash_key(raw_key)
+            super().save_model(request, obj, form, change)
+            messages.success(
+                request,
+                format_html(
+                    "کلید API ساخته شد. این مقدار فقط همین یک بار نمایش داده می‌شود؛ همین حالا کپی کن: "
+                    "<br><code style='direction:ltr; unicode-bidi:embed; font-size:14px; padding:8px; display:inline-block;'>"
+                    "{}</code>",
+                    raw_key,
+                ),
+            )
+            return
+
         super().save_model(request, obj, form, change)
 
     @admin.display(description="راهنمای امنیتی")
     def security_notice(self, obj):
-        return "کلید خام در دیتابیس ذخیره نمی‌شود. برای ساخت کلید جدید از دستور create_service_api_key استفاده کن."
+        return format_html(
+            "کلید خام در دیتابیس ذخیره نمی‌شود و فقط هنگام ساخت نمایش داده می‌شود. "
+            "اگر آن را گم کردی، همین رکورد را غیرفعال کن و یک کلید جدید بساز."
+        )
 
 
 @admin.register(GeneratedDocument)
