@@ -1,22 +1,16 @@
 services:
   web:
     build:
-      context: ./core
+      context: .
       dockerfile: Dockerfile
-      args:
-        PYTHON_VERSION: ${PYTHON_VERSION:-3.14}
     container_name: lettermcp-web
     restart: unless-stopped
     env_file:
       - .env
     depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - staticfiles:/app/staticfiles
-      - mediafiles:/app/media
+      - db
     ports:
-      - "127.0.0.1:8008:8000"
+      - "127.0.0.1:8002:8000"
     networks:
       - lettermcp-net
 
