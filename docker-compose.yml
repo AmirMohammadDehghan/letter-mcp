@@ -11,7 +11,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8002:8000"
+      - "8002:8000"
     volumes:
       - static_volume:/app/staticfiles
     networks:
