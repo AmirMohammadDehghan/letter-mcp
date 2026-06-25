@@ -1,28 +1,29 @@
-ARG PYTHON_VERSION=3.14
-FROM python:${PYTHON_VERSION}-slim
+FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       build-essential \
-       libpq-dev \
-       netcat-openbsd \
+        build-essential \
+        libpq-dev \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/requirements.txt
+
 RUN pip install --upgrade pip \
-    && pip install -r /app/requirements.txt \
-    && pip install gunicorn
+    && pip install --no-cache-dir -r /app/requirements.txt \
+    && pip install --no-cache-dir gunicorn psycopg2-binary
 
 COPY . /app
-COPY deploy/entrypoint.sh /entrypoint.sh
+
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8000
+
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+CMD ["gunicorn", "mcp.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]

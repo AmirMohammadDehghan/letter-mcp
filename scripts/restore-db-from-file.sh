@@ -1,8 +1,15 @@
-#!/usr/bin/env sh
-set -eu
+#!/bin/sh
+set -e
 
-if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 /backups/file.dump"
+BACKUP_FILE="$1"
+
+if [ -z "$BACKUP_FILE" ]; then
+  echo "Usage: /scripts/restore-db-from-file.sh /backups/file.dump"
+  exit 1
+fi
+
+if [ ! -f "$BACKUP_FILE" ]; then
+  echo "Backup file not found: $BACKUP_FILE"
   exit 1
 fi
 
@@ -14,4 +21,6 @@ fi
 
 export PGPASSWORD="$DB_PASSWORD"
 
-pg_restore -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --clean --if-exists --no-owner "$1"
+echo "Restoring $BACKUP_FILE into database $DB_NAME"
+pg_restore -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --clean --if-exists "$BACKUP_FILE"
+echo "Restore completed"

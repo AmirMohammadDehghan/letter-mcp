@@ -1,14 +1,11 @@
-#!/usr/bin/env sh
-set -eu
+#!/bin/sh
+set -e
 
-if [ -n "${DB_HOST:-}" ]; then
-  echo "Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT:-5432} ..."
-  until nc -z "$DB_HOST" "${DB_PORT:-5432}"; do
-    sleep 1
-  done
-fi
-
+echo "Applying database migrations..."
 python manage.py migrate --noinput
-python manage.py collectstatic --noinput
 
+echo "Collecting static files..."
+python manage.py collectstatic --noinput || true
+
+echo "Starting application..."
 exec "$@"

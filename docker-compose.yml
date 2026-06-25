@@ -3,39 +3,43 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: lettermcp-web
+    container_name: letter-mcp-web
     restart: unless-stopped
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "127.0.0.1:8002:8000"
+    volumes:
+      - static_volume:/app/staticfiles
     networks:
-      - lettermcp-net
+      - letter_mcp_net
 
   db:
-    image: postgres:17-alpine
-    container_name: lettermcp-db
+    image: postgres:16-alpine
+    container_name: letter-mcp-db
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      TZ: Asia/Tehran
+      POSTGRES_DB: ${DB_NAME:-lettermcp}
+      POSTGRES_USER: ${DB_USER:-lettermcp}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lettermcp} -d ${DB_NAME:-lettermcp}"]
       interval: 10s
       timeout: 5s
       retries: 10
     networks:
-      - lettermcp-net
+      - letter_mcp_net
 
   backup:
-    image: alpine:3.20
-    container_name: lettermcp-backup
+    image: python:3.12-alpine
+    container_name: letter-mcp-backup
     restart: unless-stopped
     env_file:
       - .env
@@ -43,17 +47,16 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./backups:/backups
       - ./scripts:/scripts:ro
-    command: sh -c "apk add --no-cache postgresql17-client aws-cli tzdata dcron && chmod +x /scripts/backup-db-to-rustfs.sh && echo '${BACKUP_CRON:-0 3 * * *} /scripts/backup-db-to-rustfs.sh >> /var/log/backup.log 2>&1' > /etc/crontabs/root && crond -f -l 8"
+      - ./backups:/backups
+    entrypoint: ["/bin/sh", "/scripts/backup-entrypoint.sh"]
     networks:
-      - lettermcp-net
+      - letter_mcp_net
 
 volumes:
   postgres_data:
-  staticfiles:
-  mediafiles:
+  static_volume:
 
 networks:
-  lettermcp-net:
+  letter_mcp_net:
     driver: bridge
