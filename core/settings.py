@@ -5,7 +5,7 @@ Production intent:
 - The admin panel is used to manage DOCX templates.
 - Authenticated API users, including n8n service accounts, generate letters.
 - Media files can be stored locally in development or in RustFS/S3 in production.
-- Static files can be stored locally, served by WhiteNoise, or uploaded to a separate RustFS/S3 bucket.
+- Static files can be stored locally in development or uploaded to a separate RustFS/S3 bucket in production.
 """
 
 from datetime import timedelta
@@ -32,6 +32,10 @@ def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in raw_value.split(",") if item.strip()]
 
 
+# ---------------------------------------------------------------------
+# Core
+# ---------------------------------------------------------------------
+
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me")
 DEBUG = env_bool("DEBUG", False)
 DEPLOY = env_bool("DEPLOY", False)
@@ -46,10 +50,14 @@ CSRF_TRUSTED_ORIGINS = env_list(
     "https://lettermcp.24u.ir,http://93.118.112.69:8002",
 )
 
-# Reverse proxy / CDN support. Arvan should pass X-Forwarded-Proto=https.
+# Arvan CDN / reverse proxy support.
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+
+# ---------------------------------------------------------------------
+# Apps
+# ---------------------------------------------------------------------
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -58,9 +66,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     "rest_framework",
     "rest_framework_simplejwt",
     "storages",
+
     "api",
 ]
 
@@ -98,6 +108,10 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 
+# ---------------------------------------------------------------------
+# Database
+# ---------------------------------------------------------------------
+
 if DEPLOY:
     DATABASES = {
         "default": {
@@ -118,13 +132,16 @@ else:
     }
 
 
+# ---------------------------------------------------------------------
+# Auth / Locale
+# ---------------------------------------------------------------------
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
-
 
 LANGUAGE_CODE = "fa-ir"
 TIME_ZONE = "Asia/Tehran"
@@ -133,12 +150,20 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+# ---------------------------------------------------------------------
+# Static / Media defaults
+# ---------------------------------------------------------------------
+
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
+
+# ---------------------------------------------------------------------
+# DRF / JWT
+# ---------------------------------------------------------------------
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -265,7 +290,12 @@ if USE_S3_STATIC:
     )
 
 
+# ---------------------------------------------------------------------
+# Security
+# ---------------------------------------------------------------------
+
 SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", DEPLOY and not DEBUG)
 CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", DEPLOY and not DEBUG)
 SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
+
 X_FRAME_OPTIONS = "DENY"
