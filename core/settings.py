@@ -5,7 +5,7 @@ Production intent:
 - The admin panel is used to manage DOCX templates.
 - Authenticated API users, including n8n service accounts, generate letters.
 - Media files can be stored locally in development or in RustFS/S3 in production.
-- Static files can also be stored in a separate RustFS/S3 bucket.
+- Static files can be stored locally, served by WhiteNoise, or uploaded to a separate RustFS/S3 bucket.
 """
 
 from datetime import timedelta
@@ -46,14 +46,12 @@ CSRF_TRUSTED_ORIGINS = env_list(
     "https://lettermcp.24u.ir,http://93.118.112.69:8002",
 )
 
-# Reverse proxy / CDN support.
-# Arvan CDN should pass X-Forwarded-Proto=https.
+# Reverse proxy / CDN support. Arvan should pass X-Forwarded-Proto=https.
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 INSTALLED_APPS = [
-    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -69,11 +67,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-
-    # Keep this enabled for local/static fallback.
-    # If USE_S3_STATIC=1, static files are served from S3/RustFS instead.
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -140,20 +133,12 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# ---------------------------------------------------------------------
-# Static and media defaults
-# ---------------------------------------------------------------------
-
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"
 
-
-# ---------------------------------------------------------------------
-# DRF / JWT
-# ---------------------------------------------------------------------
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -186,7 +171,7 @@ SIMPLE_JWT = {
 
 
 # ---------------------------------------------------------------------
-# S3 / RustFS storage
+# RustFS / S3 storage
 # ---------------------------------------------------------------------
 
 USE_S3_MEDIA = env_bool("USE_S3_MEDIA", False)
@@ -194,6 +179,9 @@ USE_S3_STATIC = env_bool("USE_S3_STATIC", False)
 
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "my-docgen-bucket")
+AWS_STATIC_BUCKET_NAME = os.getenv("AWS_STATIC_BUCKET_NAME", "static-docgen-bucket")
 
 AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
 AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", "https://storage.24u.ir").rstrip("/")
@@ -203,9 +191,6 @@ AWS_S3_ADDRESSING_STYLE = os.getenv("AWS_S3_ADDRESSING_STYLE", "path")
 AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION", "s3v4")
 
 AWS_QUERYSTRING_EXPIRE = int(os.getenv("AWS_QUERYSTRING_EXPIRE", "86400"))
-
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "my-docgen-bucket")
-AWS_STATIC_BUCKET_NAME = os.getenv("AWS_STATIC_BUCKET_NAME", "static-docgen-bucket")
 
 S3_MEDIA_LOCATION = os.getenv("S3_MEDIA_LOCATION", "media").strip()
 S3_STATIC_LOCATION = os.getenv("S3_STATIC_LOCATION", "static").strip()
@@ -222,7 +207,7 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 
@@ -280,12 +265,7 @@ if USE_S3_STATIC:
     )
 
 
-# ---------------------------------------------------------------------
-# Security
-# ---------------------------------------------------------------------
-
 SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", DEPLOY and not DEBUG)
 CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", DEPLOY and not DEBUG)
 SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
-
 X_FRAME_OPTIONS = "DENY"
